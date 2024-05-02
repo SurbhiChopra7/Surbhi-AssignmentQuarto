@@ -1,0 +1,394 @@
+---
+title: "Child Health and Socio-Economic Trends"
+format:
+  html:
+    code-fold: true
+jupyter: python3
+---
+
+
+Author: "Surbhi Chopra"
+
+
+  
+   Introduction
+ 
+ 
+   Analyzing the UNICEF dataset provides crucial insights into child nutrition and health metrics across nations. By examining BMI-for-Age <-2 SD values, trends of obs_value.x over time, and the distribution of obs_value.x, we can gain a comprehensive understanding of child health trends globally. Additionally, grouping data by country and summing up population allows for a deeper exploration of regional disparities. Further insights can be gleaned from scatter plots of GDP per Capita vs. Life Expectancy and Population Growth, shedding light on socio-economic factors influencing health outcomes. Finally, visualizations such as global GDP per Capita and world maps depicting variations in GDP and Obs values provide a holistic view of global health and economic disparities.
+
+```{python echo=false, message=false, warning=false}
+import pandas as pd
+```
+
+```{python echo=false, message=false, warning=false}
+
+```
+```{python echo=false, message=false, warning=false}
+df = pd.read_csv("unicef_indicator_1.csv")
+```
+
+
+
+```{python echo=false, message=false, warning=false}
+df.info()
+```
+
+
+```{python echo=false, message=false, warning=false}
+df.describe()
+```
+
+```{python echo=false, message=false, warning=false}
+df.isnull().sum()
+```
+
+```{python echo=false, message=false, warning=false}
+df= df.dropna()
+```
+
+
+```{python echo=false, message=false, warning=false}
+missing_values = df.isnull().sum()
+print("\nMissing Values:")
+print(missing_values)
+```
+
+
+
+```{python echo=false, message=false, warning=false}
+data_types = df.dtypes
+print("\nData Types:")
+print(data_types)
+
+```
+```{python echo=false, message=false, warning=false}
+duplicate_rows = df[df.duplicated()]
+print("\nDuplicate Rows:")
+print(duplicate_rows)
+
+```
+```{python echo=false, message=false, warning=false}
+df2= pd.read_csv("unicef_indicator_2.csv")
+```
+
+```{python echo=false, message=false, warning=false}
+df2.describe()
+
+```
+
+
+```{python echo=false, message=false, warning=false}
+df2.info()
+```
+
+
+```{python echo=false, message=false, warning=false}
+df2.isnull().sum()
+```
+
+```{python echo=false, message=false, warning=false}
+df2= df.dropna()
+```
+
+```{python echo=false, message=false, warning=false}
+df3= pd.read_csv("unicef_metadata.csv")
+```
+
+
+```{python echo=false, message=false, warning=false}
+df3.describe()
+```
+
+```{python echo=false, message=false, warning=false}
+df3.info()
+```
+
+```{python echo=false, message=false, warning=false}
+df3.isnull().sum()
+```
+
+```{python echo=false, message=false, warning=false}
+df3= df.dropna()
+```
+
+```{python echo=false, message=false, warning=false}
+missing_values = df3.isnull().sum()
+print("\nMissing Values:")
+print(missing_values)
+```
+
+```{python echo=false, message=false, warning=false}
+df4=pd.read_csv("final_merged_data.csv")
+```
+
+```{python}
+df4.describe()
+```
+
+
+```{python}
+import matplotlib.pyplot as plt
+
+import plotly.graph_objects as go
+# Create the trace
+trace = go.Scatter(
+x=df4['time_period'],
+y=df4['obs_value.y'],
+mode='lines+markers',
+line=dict(color='slateblue'),
+marker=dict(symbol='circle', size=8, color='slateblue')
+)
+# Create the layout
+layout = go.Layout(
+title='Trend of obs_value.y over time',
+xaxis=dict(title='Time Period'),
+yaxis=dict(title='obs_value.y'),
+autosize=True
+)
+# Create the figure
+fig = go.Figure(data=[trace], layout=layout)
+# Show plot
+fig.show()
+```
+# 1. Time Series-  An illustration of how the Obs value has changed over time is given by the Time Series. We can find patterns, variations, or trends in the data by examining the distribution of Obs values over time. By analyzing the dataset, we observe fluctuations in the observation value across different countries and years. The data shows variations in the observation value, indicating potential changes in health indicators or data collection methods over time. It has been noted the highest 18.9 observation value for India in 2015 and the dropped observation value for Mongolia
+
+
+
+```{python}
+import matplotlib.pyplot as plt
+
+# Grouping data by country and summing up population
+country = df4.groupby('country')['Population..total'].max().reset_index()
+
+# Sorting by population
+country = country.sort_values(by='Population..total', ascending=False).head(10)
+
+import plotly.graph_objects as go
+# Define data
+data = [
+go.Bar(
+x=country['country'],
+y=country['Population..total'],
+marker=dict(color='salmon')
+)
+]
+# Define layout
+layout = go.Layout(
+title='Top 10 Countries by Population',
+xaxis=dict(title='Country', tickangle=45, tickfont=dict(size=10)),
+yaxis=dict(title='Population'),
+autosize=True
+)
+# Create figure
+fig = go.Figure(data=data, layout=layout)
+# Show plot
+fig.show()
+
+```
+# 2. Bar Graph: This bar graph represents the top 10 countries by population. The data is first grouped by country, then the maximum population value is taken for each country. The resulting data frame is sorted in descending order based on population, and the top 10 countries are selected. Finally, a bar plot is created with countries on the x-axis and their corresponding populations on the y-axis. The bars are colored in salmon, and the x-axis labels are rotated for better readability. As illustrated in the bar graph India is the highest populated country with 1.4, whereas Uganda is at the lowest at less than 0.2.
+
+
+```{python}
+# Display column names
+print(df4.columns)
+
+```
+
+
+```{python} 
+! pip install statsmodels
+
+
+import plotly.express as px
+# Create scatter plot
+scatter_fig = px.scatter(df4,
+x="GDP.per.capita..constant.2015.US..",
+y="Life.expectancy.at.birth..total..years.",
+size="GDP.per.capita..constant.2015.US..",
+color="GDP.per.capita..constant.2015.US..",
+opacity=0.3,
+trendline="ols", 
+# Add regression line
+title="Scatter Plot of GDP per Capita vs. Life Expectancy",
+labels={"GDP.per.capita..constant.2015.US..": "GDP per Capita",
+"Life.expectancy.at.birth..total..years.": "Life Expectancy"},
+)
+# Update marker properties
+scatter_fig.update_traces(marker=dict(size=10, line=dict(width=2, color='DarkSlateGrey')),
+selector=dict(mode='markers'))
+# Update regression line properties
+scatter_fig.update_traces(line=dict(color='Maroon', width=3))
+# Show plot
+scatter_fig.show()
+
+```
+# 3. Scatter Plot with Regression Line:- This scatter plot visualizes the relationship between GDP per capita and life expectancy at birth across different countries. Each point represents a country, with the x-axis indicating GDP per capita and the y-axis indicating life expectancy. The size and color of the points correspond to the GDP per capita, showing higher values with larger and more intense points. The added linear regression line illustrates the overall trend of the data, suggesting a positive correlation between GDP per capita and life expectancy. Countries with higher GDP per capita tend to have higher life expectancies. However, it's important to note that this is a general trend and individual countries may deviate from it due to various factors such as healthcare policies, social programs, and environmental conditions.
+
+
+
+
+
+```{python}
+
+import plotly.graph_objects as go
+
+# Filter data for Albania
+albania_data = df4[df4['country'] == 'Albania']
+
+# Create time series plot
+time_series_fig = go.Figure()
+
+# Add trace for population growth
+time_series_fig.add_trace(go.Scatter(
+    x=albania_data['year'],
+    y=albania_data['Population..total'],
+    mode='lines+markers',
+    marker=dict(color='orange'),
+    name='Population'
+))
+
+# Update layout
+time_series_fig.update_layout(
+    title='Population Growth in Albania (1992-2020)',
+    xaxis=dict(title='Year'),
+    yaxis=dict(title='Population'),
+    autosize=True
+)
+
+# Show plot
+time_series_fig.show()
+
+
+```
+# 4. The time series plot illustrates the population dynamics of Albania over nearly three decades, from 1992 to 2020. By visualizing the data, we can discern patterns and trends in population growth over time. The upward or downward slopes of the plot indicate periods of population increase or decrease, respectively. Steeper slopes suggest rapid population growth, while flatter slopes indicate more moderate growth rates.This visualization can help policymakers, researchers, and analysts understand the demographic changes within Albania and make informed decisions regarding resource allocation, urban planning, healthcare, education, and other sectors that are influenced by population size and dynamics. Furthermore, by comparing the population trends with historical events or policy changes, one can potentially identify correlations between socio-economic factors and population growth patterns.
+
+
+
+```{python}
+! pip install geopandas
+
+```
+
+
+```{python}
+
+import plotly.graph_objects as go
+import pandas as pd
+
+
+
+import plotly.graph_objects as go
+# Creating a choropleth map
+fig = go.Figure(data=go.Choropleth(
+locations=df4['alpha_3_code.y'], # Country codes
+z=df4['GDP.per.capita..constant.2015.US..'], # GDP per capita values
+text=df4['country'], # Country names
+colorscale='Viridis', # Color scale
+colorbar_title='GDP per Capita (constant 2015 US$)', # Color bar title
+))
+# Update layout
+fig.update_layout(
+title_text='Global GDP per Capita', # Title of the plot
+geo=dict(
+showcoastlines=True, # Show coastlines
+),
+)
+# Show plot
+fig.show()
+```
+# 5. World Map:- This choropleth  World map represents the global GDP per capita in constant 2015 US dollars. Each country is shaded according to its GDP per capita value, with darker shades indicating higher GDP per capita. The map provides a visual representation of the distribution of economic prosperity across different countries worldwide. The color scale on the map's right side helps interpret the GDP per capita values associated with each color shade.
+
+
+
+
+```{python}
+
+import matplotlib.pyplot as plt
+
+import plotly.express as px
+import pandas as pd
+import geopandas as gpd
+# Read UNICEF metadata and indicator CSV files
+unicef_metadata_csv = pd.read_csv("unicef_metadata.csv", usecols=['year'], dtype={'year': int})
+unicef_indicator_2_csv = pd.read_csv("unicef_indicator_2.csv")
+# Filter and select relevant columns
+filtered_data = unicef_indicator_2_csv[['country', 'obs_value']]
+# Read world map data
+world_map_data = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+# Merge the world map data with the filtered data
+world_map_plot = world_map_data.merge(filtered_data, left_on='name', right_on='country', how='left')
+# Create the world map plot with a different color scheme using Plotly
+fig = px.choropleth(world_map_plot,
+locations="iso_a3",
+color="obs_value",
+hover_name="name",
+projection="natural earth",
+color_continuous_scale="viridis",
+title="World Map by low and high Obs value")
+# Show the plot
+fig.show()
+
+```
+# 6. World Map by High and Low obs value: The world map is representing observations values for different countries. It can be analyzed by the high and low observation values to understand the variations in health indicators across different countries and years. By examining the data, we can identify countries with exceptionally high and low observation values, which may indicate disparities in health outcomes, economic conditions, or healthcare access. This analysis can help pinpoint regions that require targeted interventions to address health inequalities and improve overall well-being. Where Australia is at lowest with 0.2 and India with 17.5
+
+
+
+```{python}
+import geopandas as gpd
+import matplotlib.pyplot as plt
+
+
+import plotly.graph_objects as go
+
+import geopandas as gpd
+
+# Load world shapefile
+
+world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+
+# Merge world map with GDP per capita data
+
+world = world.merge(df4[['alpha_3_code', 'GDP.per.capita..constant.2015.US..']], left_on='iso_a3', right_on='alpha_3_code', how='left')
+
+# Plotting
+
+fig = go.Figure(go.Choropleth(
+
+    locations=world['iso_a3'],
+
+    z=world['GDP.per.capita..constant.2015.US..'],
+
+    text=world['name'],
+
+    colorscale='OrRd',
+
+    colorbar_title='GDP Per Capita (constant 2015 US$)'
+
+))
+
+fig.update_layout(
+
+    title_text='World Map Visualization of GDP Per Capita',
+
+    geo=dict(
+
+        showframe=False,
+
+        showcoastlines=False,
+
+        projection_type='equirectangular'
+
+    )
+
+)
+fig.show()
+
+```
+# 7. world map: A world map visualization depicting the GDP per capita (constant 2015 US$) across various countries. Each country is assigned a color representing its GDP per capita value, facilitating a clear understanding of economic disparities on a global scale. The resulting visualization offers insights into the distribution of wealth across different regions, aiding in identifying countries with varying levels of economic prosperity. This visualization serves as a valuable tool for analysts and policymakers alike, enabling them to make informed decisions based on the depicted economic landscape.
+
+
+#  Conclusion
+# In summary, the analysis of the UNICEF dataset offers invaluable insights into global child nutrition and health metrics, emphasizing the significance of examining BMI-for-Age <-2 SD values, trends over time, and distribution patterns. Grouping data by country and population facilitates a nuanced understanding of regional health disparities. Moreover, visualizations like scatter plots of GDP per Capita vs. Life Expectancy illuminate socio-economic influences on health outcomes. World maps depicting GDP per Capita and observation values provide a comprehensive view of global disparities. These insights underscore the importance of informed policy-making and intervention strategies to address global health challenges and promote child well-being worldwide. Through visualisations, the percentage of children under 5 years old in the country suffering from at least one deprivation, specifically related to low BMI-for-age. Spanning from 1992 to 2021, the data offers insights into the nutritional status of young children over time. This dataset is valuable for researchers and policymakers interested in understanding the prevalence of malnutrition among children in the country and tracking changes in this important health indicator across different years.
+
+
+# Recommendation for UNICEF: Utilize the insights gained from analyzing the dataset to inform targeted interventions and policy initiatives aimed at addressing regional health disparities and promoting child well-being, focusing particularly on addressing malnutrition among children under 5 years old.
